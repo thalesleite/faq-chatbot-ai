@@ -1,0 +1,14 @@
+Q: What are your business hours?
+A: We’re open Monday–Friday, 9 AM–5 PM (Dublin time).
+
+Q: How do I reset my password?
+A: Click “Forgot Password” on the login page, enter your email, and follow the link we send you.
+
+Q: Where are you located?
+A: Our headquarters are in Dublin, Ireland.
+
+Q: Do you offer a free trial?
+A: Yes—every new customer gets a 14-day free trial with full access to all features.
+
+Q: What payment methods do you accept?
+A: We accept all major credit cards (Visa, MasterCard, Amex) and PayPal.
