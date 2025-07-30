@@ -2,7 +2,7 @@ streamlit
 python-dotenv
 langchain
 langchain-community
-openai
+openai>=0.27.0,<1.0.0
 faiss-cpu
 textblob
 tiktoken
