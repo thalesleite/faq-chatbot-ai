@@ -1,45 +1,50 @@
+# chatbot.py
+
 import os
 from dotenv import load_dotenv
+from textblob import TextBlob
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains import RetrievalQA
-from langchain.llms import OpenAI
-from textblob import TextBlob
+from langchain.chat_models import ChatOpenAI
 
-# 1. Load env
-load_dotenv()
+load_dotenv()  # loads OPENAI_API_KEY from .env
 
-# 2. Build the QA chain once
-def build_chain(faq_path="faqs.txt"):
-    # a) Load text file
-    loader   = TextLoader(faq_path)
-    docs     = loader.load()
+def build_chain(faq_path: str = "faqs.txt") -> RetrievalQA:
+    """Load FAQs, build embeddings & FAISS index, and return a RetrievalQA chain."""
+    # 1. Load FAQ document
+    loader = TextLoader(faq_path)
+    docs = loader.load()
 
-    # b) Split into chunks (helps with long FAQ files)
+    # 2. Split into manageable chunks
     splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    chunks   = splitter.split_documents(docs)
+    chunks = splitter.split_documents(docs)
 
-    # c) Embed & index
-    embeddings  = OpenAIEmbeddings()
+    # 3. Embed and index with FAISS
+    embeddings = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(chunks, embeddings)
 
-    # d) Wrap into a QA chain
-    return RetrievalQA.from_chain_type(
-        llm=OpenAI(temperature=0),
+    # 4. Create a RetrievalQA chain using a Chat model
+    qa = RetrievalQA.from_chain_type(
+        llm=ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0),
         retriever=vectorstore.as_retriever()
     )
+    return qa
 
+# Build the chain once at import time
 qa_chain = build_chain()
 
 def correct_spelling(text: str) -> str:
+    """Lightweight spell‐correction via TextBlob."""
     blob = TextBlob(text)
-    # .correct() can be a bit slow on very long text, but it's fine for FAQs
     return str(blob.correct())
 
 def get_response(question: str) -> str:
-    # 1. Correct common typos
+    """
+    1) Correct common typos in the user’s question.
+    2) Run the RetrievalQA chain to find the most relevant FAQ answer.
+    """
     clean_q = correct_spelling(question)
-    # 2. Run the QA chain
     return qa_chain.run(clean_q)
